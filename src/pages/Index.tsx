@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import Navbar from '@/components/Navbar';
+import LandingNavbar from '@/components/LandingNavbar';
 import HeroSection from '@/components/HeroSection';
 import ProblemSection from '@/components/ProblemSection';
 import FeaturesSection from '@/components/FeaturesSection';
@@ -22,13 +22,21 @@ const Index = () => {
       </Helmet>
       
       <main className="min-h-screen bg-background overflow-x-hidden">
-        <Navbar />
-        <HeroSection />
+        <LandingNavbar />
+        <section id="hero">
+          <HeroSection />
+        </section>
         <ProblemSection />
-        <FeaturesSection />
-        <CareerJourneySection />
+        <section id="features">
+          <FeaturesSection />
+        </section>
+        <section id="journey">
+          <CareerJourneySection />
+        </section>
         <MetricsSection />
-        <CTASection />
+        <section id="about">
+          <CTASection />
+        </section>
         <Footer />
       </main>
     </>

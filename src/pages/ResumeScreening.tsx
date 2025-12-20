@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Upload, FileText, AlertCircle, CheckCircle2, XCircle, Loader2, ArrowLeft, Lightbulb } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, XCircle, Loader2, ArrowLeft, Lightbulb, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import DashboardNavbar from '@/components/DashboardNavbar';
+import { useUser } from '@/contexts/UserContext';
 
 interface SectionAnalysis {
   name: string;
@@ -41,26 +43,68 @@ const ResumeScreening = () => {
   const [resumeText, setResumeText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { userProfile } = useUser();
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type === 'text/plain') {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setResumeText(event.target?.result as string);
-        };
-        reader.readAsText(file);
-      } else {
-        toast({
-          title: 'File format not supported',
-          description: 'Please paste your resume text directly or upload a .txt file.',
-          variant: 'destructive',
-        });
-      }
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    // For now, we'll read the PDF as text. In production, you'd use a PDF parsing library
+    // Since we can't fully parse PDF in browser, we'll show a message and allow text input
+    toast({
+      title: 'PDF uploaded',
+      description: 'PDF parsing is limited. For best results, also paste the text content in the text area.',
+    });
+    return `[PDF uploaded: ${file.name}]\n\nPlease also paste your resume text below for accurate analysis.`;
+  };
+
+  const handleFileUpload = useCallback(async (file: File) => {
+    if (file.type === 'text/plain') {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setResumeText(event.target?.result as string);
+        setUploadedFileName(file.name);
+      };
+      reader.readAsText(file);
+    } else if (file.type === 'application/pdf') {
+      setUploadedFileName(file.name);
+      const text = await extractTextFromPDF(file);
+      setResumeText(prev => prev ? prev + '\n\n' + text : text);
+    } else {
+      toast({
+        title: 'File format not supported',
+        description: 'Please upload a PDF or .txt file, or paste your resume text directly.',
+        variant: 'destructive',
+      });
     }
   }, [toast]);
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  }, [handleFileUpload]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  }, [handleFileUpload]);
 
   const analyzeResume = async () => {
     if (!resumeText.trim()) {
@@ -119,10 +163,11 @@ const ResumeScreening = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <div className="container-custom py-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors mb-8">
+        {userProfile && <DashboardNavbar />}
+        <div className={`container-custom py-8 ${userProfile ? 'pt-24' : ''}`}>
+          <Link to={userProfile ? '/dashboard' : '/'} className="inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
-            Back to Home
+            {userProfile ? 'Back to Dashboard' : 'Back to Home'}
           </Link>
 
           <motion.div
@@ -136,31 +181,65 @@ const ResumeScreening = () => {
             {!analysis ? (
               <Card className="glass-card p-6 md:p-8">
                 <div className="space-y-6">
+                  {/* Drag and Drop Area */}
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+                      isDragging 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary/50 hover:bg-muted/30'
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.txt"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center gap-3">
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                        isDragging ? 'bg-primary/20' : 'bg-muted'
+                      }`}>
+                        <Upload className={`w-8 h-8 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+                      </div>
+                      {uploadedFileName ? (
+                        <div className="flex items-center gap-2 text-primary">
+                          <File className="w-4 h-4" />
+                          <span className="font-medium">{uploadedFileName}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-foreground font-medium">Drag and drop your resume here</p>
+                          <p className="text-sm text-muted-foreground">or click to browse</p>
+                        </>
+                      )}
+                      <p className="text-xs text-muted-foreground">Supports PDF and TXT files</p>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="bg-card px-4 text-muted-foreground">or paste your resume text</span>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Paste your resume content
+                      Resume content
                     </label>
                     <Textarea
                       value={resumeText}
                       onChange={(e) => setResumeText(e.target.value)}
                       placeholder="Paste your resume text here... Include all sections like contact info, summary, experience, education, skills, etc."
-                      className="min-h-[300px] font-mono text-sm"
+                      className="min-h-[250px] font-mono text-sm"
                     />
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept=".txt"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <div className="flex items-center gap-2 text-secondary hover:text-primary transition-colors">
-                        <Upload className="w-4 h-4" />
-                        <span className="text-sm font-medium">Upload .txt file</span>
-                      </div>
-                    </label>
                   </div>
 
                   <Button
