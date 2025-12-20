@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardNavbar from '@/components/DashboardNavbar';
 import { useUser } from '@/contexts/UserContext';
+import { extractTextFromPDF } from '@/lib/pdfParser';
 
 interface SectionAnalysis {
   name: string;
@@ -88,13 +89,7 @@ const ResumeScreening = () => {
   const [isAnalyzingSkillGap, setIsAnalyzingSkillGap] = useState(false);
   const [skillGapAnalysis, setSkillGapAnalysis] = useState<SkillGapAnalysis | null>(null);
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    toast({
-      title: 'PDF uploaded',
-      description: 'Processing your PDF. For best results, also paste the text content.',
-    });
-    return `[PDF uploaded: ${file.name}]\n\nPlease also paste your resume text below for accurate analysis.`;
-  };
+  const [isParsing, setIsParsing] = useState(false);
 
   const handleFileUpload = useCallback(async (file: File) => {
     if (file.type === 'text/plain') {
@@ -106,8 +101,24 @@ const ResumeScreening = () => {
       reader.readAsText(file);
     } else if (file.type === 'application/pdf') {
       setUploadedFileName(file.name);
-      const text = await extractTextFromPDF(file);
-      setResumeText(prev => prev ? prev + '\n\n' + text : text);
+      setIsParsing(true);
+      try {
+        const text = await extractTextFromPDF(file);
+        setResumeText(text);
+        toast({
+          title: 'PDF parsed successfully',
+          description: 'Your resume text has been extracted. Click "Analyze Resume" to continue.',
+        });
+      } catch (error) {
+        console.error('PDF parsing error:', error);
+        toast({
+          title: 'PDF parsing failed',
+          description: 'Could not extract text from PDF. Please paste your resume text manually.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsParsing(false);
+      }
     } else {
       toast({
         title: 'File format not supported',
@@ -297,11 +308,17 @@ const ResumeScreening = () => {
                     />
                     <div className="flex flex-col items-center gap-3">
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                        isDragging ? 'bg-primary/20' : 'bg-muted'
+                        isDragging ? 'bg-primary/20' : isParsing ? 'bg-secondary/20' : 'bg-muted'
                       }`}>
-                        <Upload className={`w-8 h-8 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+                        {isParsing ? (
+                          <Loader2 className="w-8 h-8 text-secondary animate-spin" />
+                        ) : (
+                          <Upload className={`w-8 h-8 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+                        )}
                       </div>
-                      {uploadedFileName ? (
+                      {isParsing ? (
+                        <p className="text-secondary font-medium">Parsing PDF...</p>
+                      ) : uploadedFileName ? (
                         <div className="flex items-center gap-2 text-primary">
                           <File className="w-4 h-4" />
                           <span className="font-medium">{uploadedFileName}</span>
