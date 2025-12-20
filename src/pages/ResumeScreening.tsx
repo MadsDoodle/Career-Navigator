@@ -1,12 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Upload, FileText, AlertCircle, CheckCircle2, XCircle, Loader2, ArrowLeft, Lightbulb, File } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle2, XCircle, Loader2, ArrowLeft, Lightbulb, File, Target, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
@@ -36,7 +37,39 @@ interface ResumeAnalysis {
     issues: string[];
     suggestions: string[];
   };
+  extractedSkills?: string[];
   summary: string;
+}
+
+interface SkillGapAnalysis {
+  targetRoleAnalysis: {
+    title: string;
+    description: string;
+    averageSalary: string;
+    demandLevel: string;
+  };
+  skillComparison: {
+    skill: string;
+    category: string;
+    currentLevel: number;
+    requiredLevel: number;
+    gap: number;
+    priority: string;
+  }[];
+  missingSkills: {
+    skill: string;
+    importance: string;
+    timeToLearn: string;
+    learningResources: string[];
+  }[];
+  strengths: string[];
+  learningRoadmap: {
+    phase1: { title: string; duration: string; focus: string[]; milestones: string[] };
+    phase2: { title: string; duration: string; focus: string[]; milestones: string[] };
+    phase3: { title: string; duration: string; focus: string[]; milestones: string[] };
+  };
+  overallReadiness: number;
+  estimatedTimeToReady: string;
 }
 
 const ResumeScreening = () => {
@@ -49,12 +82,16 @@ const ResumeScreening = () => {
   const { toast } = useToast();
   const { userProfile } = useUser();
 
+  // Skill Gap Analysis states
+  const [showSkillGap, setShowSkillGap] = useState(false);
+  const [targetRole, setTargetRole] = useState('');
+  const [isAnalyzingSkillGap, setIsAnalyzingSkillGap] = useState(false);
+  const [skillGapAnalysis, setSkillGapAnalysis] = useState<SkillGapAnalysis | null>(null);
+
   const extractTextFromPDF = async (file: File): Promise<string> => {
-    // For now, we'll read the PDF as text. In production, you'd use a PDF parsing library
-    // Since we can't fully parse PDF in browser, we'll show a message and allow text input
     toast({
       title: 'PDF uploaded',
-      description: 'PDF parsing is limited. For best results, also paste the text content in the text area.',
+      description: 'Processing your PDF. For best results, also paste the text content.',
     });
     return `[PDF uploaded: ${file.name}]\n\nPlease also paste your resume text below for accurate analysis.`;
   };
@@ -126,9 +163,10 @@ const ResumeScreening = () => {
 
       if (data.analysis) {
         setAnalysis(data.analysis);
+        setShowSkillGap(true); // Show skill gap section after analysis
         toast({
           title: 'Analysis complete!',
-          description: 'Your resume has been analyzed. Check the results below.',
+          description: 'Your resume has been analyzed. You can now run a skill gap analysis.',
         });
       }
     } catch (error) {
@@ -143,6 +181,54 @@ const ResumeScreening = () => {
     }
   };
 
+  const analyzeSkillGap = async () => {
+    if (!targetRole.trim()) {
+      toast({
+        title: 'Target role required',
+        description: 'Please enter your target role to analyze skill gaps.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const currentSkills = analysis?.extractedSkills || analysis?.keywords?.found || [];
+    
+    if (currentSkills.length === 0) {
+      toast({
+        title: 'No skills found',
+        description: 'Could not extract skills from your resume. Please ensure your resume has a skills section.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsAnalyzingSkillGap(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('skill-gap-analysis', {
+        body: { currentSkills, targetRole },
+      });
+
+      if (error) throw error;
+
+      if (data.analysis) {
+        setSkillGapAnalysis(data.analysis);
+        toast({
+          title: 'Skill gap analysis complete!',
+          description: 'Check out your personalized learning roadmap below.',
+        });
+      }
+    } catch (error) {
+      console.error('Skill gap analysis error:', error);
+      toast({
+        title: 'Analysis failed',
+        description: 'Failed to analyze skill gaps. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAnalyzingSkillGap(false);
+    }
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-yellow-600';
@@ -153,6 +239,15 @@ const ResumeScreening = () => {
     if (score >= 80) return 'bg-green-500';
     if (score >= 60) return 'bg-yellow-500';
     return 'bg-red-500';
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Critical': return 'bg-red-100 text-red-700 border-red-200';
+      case 'High': return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'Medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      default: return 'bg-green-100 text-green-700 border-green-200';
+    }
   };
 
   return (
@@ -308,6 +403,196 @@ const ResumeScreening = () => {
                   </div>
                 </Card>
 
+                {/* Extracted Skills */}
+                {analysis.extractedSkills && analysis.extractedSkills.length > 0 && (
+                  <Card className="glass-card p-6 md:p-8">
+                    <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Skills Extracted from Your Resume
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.extractedSkills.map((skill, i) => (
+                        <Badge key={i} variant="outline" className="bg-primary/5 border-primary/20 text-primary">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Skill Gap Analysis Section */}
+                {showSkillGap && !skillGapAnalysis && (
+                  <Card className="glass-card p-6 md:p-8 border-2 border-secondary/30">
+                    <h3 className="text-xl font-bold text-primary mb-2 flex items-center gap-2">
+                      <Target className="w-5 h-5 text-secondary" />
+                      Skill Gap Analysis
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Based on your extracted skills, let's identify gaps for your target role.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Input
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        placeholder="Enter your target role (e.g., Senior Software Engineer)"
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={analyzeSkillGap}
+                        disabled={isAnalyzingSkillGap || !targetRole.trim()}
+                        className="btn-primary whitespace-nowrap"
+                      >
+                        {isAnalyzingSkillGap ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            Analyze Skill Gap
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Skill Gap Analysis Results */}
+                {skillGapAnalysis && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-6"
+                  >
+                    {/* Target Role Overview */}
+                    <Card className="glass-card p-6 md:p-8 border-2 border-secondary/30">
+                      <h3 className="text-xl font-bold text-primary mb-4">
+                        Target Role: {skillGapAnalysis.targetRoleAnalysis?.title || targetRole}
+                      </h3>
+                      <div className="grid md:grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-4 bg-muted/50 rounded-lg">
+                          <p className="text-sm text-muted-foreground">Overall Readiness</p>
+                          <p className={`text-3xl font-bold ${getScoreColor(skillGapAnalysis.overallReadiness)}`}>
+                            {skillGapAnalysis.overallReadiness}%
+                          </p>
+                        </div>
+                        <div className="text-center p-4 bg-muted/50 rounded-lg">
+                          <p className="text-sm text-muted-foreground">Time to Ready</p>
+                          <p className="text-xl font-semibold text-foreground">
+                            {skillGapAnalysis.estimatedTimeToReady}
+                          </p>
+                        </div>
+                        <div className="text-center p-4 bg-muted/50 rounded-lg">
+                          <p className="text-sm text-muted-foreground">Demand Level</p>
+                          <Badge variant={skillGapAnalysis.targetRoleAnalysis?.demandLevel === 'High' ? 'default' : 'secondary'}>
+                            {skillGapAnalysis.targetRoleAnalysis?.demandLevel || 'Medium'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-muted-foreground">{skillGapAnalysis.targetRoleAnalysis?.description}</p>
+                    </Card>
+
+                    {/* Skill Comparison */}
+                    {skillGapAnalysis.skillComparison && skillGapAnalysis.skillComparison.length > 0 && (
+                      <Card className="glass-card p-6 md:p-8">
+                        <h3 className="text-xl font-bold text-primary mb-6">Skill Comparison</h3>
+                        <div className="space-y-4">
+                          {skillGapAnalysis.skillComparison.map((skill, index) => (
+                            <div key={index} className="border border-border rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-foreground">{skill.skill}</span>
+                                  <Badge variant="outline" className="text-xs">{skill.category}</Badge>
+                                </div>
+                                <Badge className={getPriorityColor(skill.priority)}>{skill.priority}</Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Current Level</p>
+                                  <Progress value={skill.currentLevel} className="h-2" />
+                                  <span className="text-xs text-muted-foreground">{skill.currentLevel}%</span>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Required Level</p>
+                                  <Progress value={skill.requiredLevel} className="h-2" />
+                                  <span className="text-xs text-muted-foreground">{skill.requiredLevel}%</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Missing Skills */}
+                    {skillGapAnalysis.missingSkills && skillGapAnalysis.missingSkills.length > 0 && (
+                      <Card className="glass-card p-6 md:p-8">
+                        <h3 className="text-xl font-bold text-primary mb-6">Skills to Learn</h3>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          {skillGapAnalysis.missingSkills.map((skill, index) => (
+                            <div key={index} className="border border-border rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-foreground">{skill.skill}</span>
+                                <Badge className={getPriorityColor(skill.importance)}>{skill.importance}</Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                Time to learn: {skill.timeToLearn}
+                              </p>
+                              {skill.learningResources && skill.learningResources.length > 0 && (
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Resources:</p>
+                                  <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                    {skill.learningResources.slice(0, 2).map((resource, i) => (
+                                      <li key={i}>{resource}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Learning Roadmap */}
+                    {skillGapAnalysis.learningRoadmap && (
+                      <Card className="glass-card p-6 md:p-8">
+                        <h3 className="text-xl font-bold text-primary mb-6">Your Learning Roadmap</h3>
+                        <div className="space-y-4">
+                          {['phase1', 'phase2', 'phase3'].map((phaseKey, index) => {
+                            const phase = skillGapAnalysis.learningRoadmap[phaseKey as keyof typeof skillGapAnalysis.learningRoadmap];
+                            if (!phase) return null;
+                            return (
+                              <div key={phaseKey} className="border-l-4 border-secondary pl-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-sm flex items-center justify-center font-medium">
+                                    {index + 1}
+                                  </span>
+                                  <h4 className="font-semibold text-foreground">{phase.title}</h4>
+                                  <Badge variant="outline">{phase.duration}</Badge>
+                                </div>
+                                <div className="ml-8">
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Focus: {phase.focus?.join(', ')}
+                                  </p>
+                                  {phase.milestones && phase.milestones.length > 0 && (
+                                    <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                      {phase.milestones.map((milestone, i) => (
+                                        <li key={i}>{milestone}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    )}
+                  </motion.div>
+                )}
+
                 {/* Section Analysis */}
                 <Card className="glass-card p-6 md:p-8">
                   <h3 className="text-xl font-bold text-primary mb-6">Section-by-Section Analysis</h3>
@@ -446,6 +731,10 @@ const ResumeScreening = () => {
                   onClick={() => {
                     setAnalysis(null);
                     setResumeText('');
+                    setUploadedFileName(null);
+                    setShowSkillGap(false);
+                    setSkillGapAnalysis(null);
+                    setTargetRole('');
                   }}
                   variant="outline"
                   className="w-full"

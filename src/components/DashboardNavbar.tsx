@@ -30,7 +30,7 @@ const DashboardNavbar = () => {
       transition={{ delay: 0.2, type: 'spring', damping: 20 }}
       className="fixed top-4 left-1/2 -translate-x-1/2 z-50"
     >
-      <div className="glass-card px-2 py-2 flex items-center gap-1 rounded-full shadow-lg border border-border/50">
+      <div className="glass-card px-3 py-2 flex items-center justify-center gap-1 rounded-full shadow-lg border border-border/50">
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2 mr-2">
           <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center">

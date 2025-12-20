@@ -165,11 +165,11 @@ const ResourceChat = () => {
                           key={topic}
                           variant="ghost"
                           size="sm"
-                          className="w-full justify-start text-left text-sm"
+                          className="w-full justify-start text-left text-sm truncate"
                           onClick={() => sendMessage(`I want to learn about ${topic}. What resources do you recommend?`)}
                         >
-                          <BookOpen className="w-3 h-3 mr-2" />
-                          {topic}
+                          <BookOpen className="w-3 h-3 mr-2 flex-shrink-0" />
+                          <span className="truncate">{topic}</span>
                         </Button>
                       ))}
                     </div>
