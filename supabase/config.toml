@@ -1,1 +1,16 @@
 project_id = "vosprrvihiheubdyuohd"
+
+[functions.analyze-resume]
+verify_jwt = false
+
+[functions.generate-resume-section]
+verify_jwt = false
+
+[functions.resource-chat]
+verify_jwt = false
+
+[functions.skill-gap-analysis]
+verify_jwt = false
+
+[functions.generate-cover-letter]
+verify_jwt = false
