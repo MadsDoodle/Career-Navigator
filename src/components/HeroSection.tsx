@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Upload, Route, ArrowRight, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import WaveBackground from './WaveBackground';
 
 const HeroSection = () => {
@@ -42,26 +43,26 @@ const HeroSection = () => {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <motion.a
-                href="#resume-screen"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="btn-primary inline-flex items-center justify-center gap-2 text-lg"
-              >
-                <Upload className="w-5 h-5" />
-                Upload Resume
-                <ArrowRight className="w-4 h-4" />
-              </motion.a>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/resume-screening"
+                  className="btn-primary inline-flex items-center justify-center gap-2 text-lg"
+                >
+                  <Upload className="w-5 h-5" />
+                  Upload Resume
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </motion.div>
               
-              <motion.a
-                href="#career-path"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="btn-secondary inline-flex items-center justify-center gap-2 text-lg"
-              >
-                <Route className="w-5 h-5" />
-                Build Career Path
-              </motion.a>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/resume-builder"
+                  className="btn-secondary inline-flex items-center justify-center gap-2 text-lg"
+                >
+                  <Route className="w-5 h-5" />
+                  Build Resume
+                </Link>
+              </motion.div>
             </div>
 
             {/* Stats */}
@@ -93,63 +94,69 @@ const HeroSection = () => {
           >
             <div className="grid gap-4">
               {/* Main Feature Card */}
-              <motion.div
-                whileHover={{ y: -4 }}
-                className="glass-card-hover p-6 md:p-8"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center flex-shrink-0">
-                    <Target className="w-7 h-7 text-primary-foreground" />
+              <Link to="/resume-screening">
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  className="glass-card-hover p-6 md:p-8"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center flex-shrink-0">
+                      <Target className="w-7 h-7 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-primary mb-2">Smart ATS Analysis</h3>
+                      <p className="text-muted-foreground">
+                        AI-powered resume screening that evaluates your resume against ATS criteria 
+                        and provides actionable improvement suggestions.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-primary mb-2">Smart ATS Analysis</h3>
-                    <p className="text-muted-foreground">
-                      AI-powered resume screening that evaluates your resume against ATS criteria 
-                      and provides actionable improvement suggestions.
-                    </p>
+                  
+                  {/* Score Preview */}
+                  <div className="mt-6 p-4 bg-muted/50 rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-foreground">ATS Compatibility Score</span>
+                      <span className="text-lg font-bold text-secondary">87%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: '87%' }}
+                        transition={{ delay: 1, duration: 1.5, ease: 'easeOut' }}
+                        className="h-full gradient-accent-bg rounded-full"
+                      />
+                    </div>
                   </div>
-                </div>
-                
-                {/* Score Preview */}
-                <div className="mt-6 p-4 bg-muted/50 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">ATS Compatibility Score</span>
-                    <span className="text-lg font-bold text-secondary">87%</span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: '87%' }}
-                      transition={{ delay: 1, duration: 1.5, ease: 'easeOut' }}
-                      className="h-full gradient-accent-bg rounded-full"
-                    />
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
 
               {/* Secondary Cards Grid */}
               <div className="grid sm:grid-cols-2 gap-4">
-                <motion.div
-                  whileHover={{ y: -4 }}
-                  className="glass-card-hover p-5"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-sky-pale flex items-center justify-center mb-4">
-                    <Route className="w-6 h-6 text-secondary" />
-                  </div>
-                  <h4 className="font-semibold text-primary mb-1">Skill Gap Analysis</h4>
-                  <p className="text-sm text-muted-foreground">Identify missing skills and get personalized learning paths</p>
-                </motion.div>
+                <Link to="/skill-gap">
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    className="glass-card-hover p-5"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-sky-pale flex items-center justify-center mb-4">
+                      <Route className="w-6 h-6 text-secondary" />
+                    </div>
+                    <h4 className="font-semibold text-primary mb-1">Skill Gap Analysis</h4>
+                    <p className="text-sm text-muted-foreground">Identify missing skills and get personalized learning paths</p>
+                  </motion.div>
+                </Link>
 
-                <motion.div
-                  whileHover={{ y: -4 }}
-                  className="glass-card-hover p-5"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-sky-pale flex items-center justify-center mb-4">
-                    <TrendingUp className="w-6 h-6 text-secondary" />
-                  </div>
-                  <h4 className="font-semibold text-primary mb-1">Career Projection</h4>
-                  <p className="text-sm text-muted-foreground">Visualize salary growth and progression paths</p>
-                </motion.div>
+                <Link to="/jobs">
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    className="glass-card-hover p-5"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-sky-pale flex items-center justify-center mb-4">
+                      <TrendingUp className="w-6 h-6 text-secondary" />
+                    </div>
+                    <h4 className="font-semibold text-primary mb-1">Job Matching</h4>
+                    <p className="text-sm text-muted-foreground">Find jobs that match your skills with AI matching</p>
+                  </motion.div>
+                </Link>
               </div>
             </div>
           </motion.div>

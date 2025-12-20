@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
-import { Sparkles, Upload, ArrowRight } from 'lucide-react';
+import { Sparkles, Upload, ArrowRight, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import WaveBackground from './WaveBackground';
 
 const CTASection = () => {
@@ -60,23 +61,26 @@ const CTASection = () => {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              className="btn-primary inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
-            >
-              <Upload className="w-5 h-5" />
-              Upload Your Resume
-              <ArrowRight className="w-5 h-5" />
-            </motion.button>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                to="/resume-screening"
+                className="btn-primary inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
+              >
+                <Upload className="w-5 h-5" />
+                Analyze Your Resume
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </motion.div>
             
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              className="btn-secondary inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
-            >
-              Build from Scratch
-            </motion.button>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                to="/resume-builder"
+                className="btn-secondary inline-flex items-center justify-center gap-2 text-lg px-8 py-4"
+              >
+                <FileText className="w-5 h-5" />
+                Build from Scratch
+              </Link>
+            </motion.div>
           </motion.div>
 
           {/* Trust indicators */}

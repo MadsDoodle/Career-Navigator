@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   FileSearch, 
   FileText, 
@@ -18,6 +19,7 @@ const features = [
     highlights: ['ATS Score Meter', 'Format Optimization', 'Keyword Analysis', 'Section Feedback'],
     color: 'from-primary to-navy-light',
     bgColor: 'bg-primary/5',
+    link: '/resume-screening',
   },
   {
     icon: FileText,
@@ -26,6 +28,7 @@ const features = [
     highlights: ['Step-by-Step Builder', 'Live Preview', 'ATS Optimization', 'Downloadable PDF'],
     color: 'from-secondary to-cyan',
     bgColor: 'bg-secondary/5',
+    link: '/resume-builder',
   },
   {
     icon: GitBranch,
@@ -34,14 +37,16 @@ const features = [
     highlights: ['Skill Comparison', 'Radar Visualization', 'Learning Timeline', 'AI Recommendations'],
     color: 'from-cyan to-secondary',
     bgColor: 'bg-cyan/5',
+    link: '/skill-gap',
   },
   {
     icon: Briefcase,
     title: 'AI Job Search & Matching',
     description: 'Semantic matching finds jobs that truly fit your profile. See match percentages and relevance scores.',
-    highlights: ['Smart Matching', 'Salary Insights', 'Location Filters', 'Skill Alignment'],
+    highlights: ['Smart Matching', 'Salary Insights', 'Location Filters', 'Cover Letter AI'],
     color: 'from-navy-light to-primary',
     bgColor: 'bg-navy/5',
+    link: '/jobs',
   },
 ];
 
@@ -112,13 +117,13 @@ const FeaturesSection = () => {
                 </div>
 
                 {/* CTA */}
-                <a
-                  href="#cta"
+                <Link
+                  to={feature.link}
                   className="inline-flex items-center gap-2 text-primary font-semibold group-hover:text-secondary transition-colors"
                 >
                   Try this feature
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </a>
+                </Link>
               </div>
             </motion.div>
           ))}
