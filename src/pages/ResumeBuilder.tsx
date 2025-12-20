@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import DashboardNavbar from '@/components/DashboardNavbar';
+import { useUser } from '@/contexts/UserContext';
 
 interface ResumeData {
   personalInfo: {
@@ -324,6 +326,8 @@ const ResumeBuilder = () => {
     }
   };
 
+  const { userProfile } = useUser();
+
   return (
     <>
       <Helmet>
@@ -332,11 +336,12 @@ const ResumeBuilder = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <div className="container-custom py-8">
+        {userProfile && <DashboardNavbar />}
+        <div className={`container-custom py-8 ${userProfile ? 'pt-24' : ''}`}>
           <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors">
+            <Link to={userProfile ? '/dashboard' : '/'} className="inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors">
               <ArrowLeft className="w-4 h-4" />
-              Back to Home
+              {userProfile ? 'Back to Dashboard' : 'Back to Home'}
             </Link>
             <div className="flex items-center gap-2">
               <Button

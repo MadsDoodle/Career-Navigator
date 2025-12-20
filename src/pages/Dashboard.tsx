@@ -15,7 +15,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
-import FloatingNav from '@/components/dashboard/FloatingNav';
+import DashboardNavbar from '@/components/DashboardNavbar';
 import TypewriterText from '@/components/dashboard/TypewriterText';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -137,9 +137,10 @@ const Dashboard = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
+        <DashboardNavbar />
         <DashboardSidebar />
         
-        <main className="ml-20 lg:ml-[280px] transition-all duration-300 pb-32">
+        <main className="ml-20 lg:ml-[280px] transition-all duration-300 pt-24 pb-12">
           <div className="max-w-6xl mx-auto px-6 py-8">
             {/* Welcome Section */}
             <motion.div
@@ -250,8 +251,6 @@ const Dashboard = () => {
             </motion.div>
           </div>
         </main>
-
-        <FloatingNav />
       </div>
     </>
   );

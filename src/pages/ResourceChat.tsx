@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import DashboardNavbar from '@/components/DashboardNavbar';
+import { useUser } from '@/contexts/UserContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -94,6 +96,8 @@ const ResourceChat = () => {
     }
   };
 
+  const { userProfile } = useUser();
+
   return (
     <>
       <Helmet>
@@ -102,10 +106,11 @@ const ResourceChat = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <div className="container-custom py-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors mb-8">
+        {userProfile && <DashboardNavbar />}
+        <div className={`container-custom py-8 ${userProfile ? 'pt-24' : ''}`}>
+          <Link to={userProfile ? '/dashboard' : '/'} className="inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
-            Back to Home
+            {userProfile ? 'Back to Dashboard' : 'Back to Home'}
           </Link>
 
           <motion.div
