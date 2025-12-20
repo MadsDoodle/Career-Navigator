@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Heuristic-based PDF text extraction with section detection
+// Heuristic-based section extraction from text
 function extractSectionsFromText(text: string): { sectionName: string; content: string }[] {
   const sectionPatterns = [
     { pattern: /(?:^|\n)\s*(SUMMARY|PROFESSIONAL\s*SUMMARY|OBJECTIVE|CAREER\s*OBJECTIVE|PROFILE)\s*[:\-]?\s*\n/gi, name: 'Summary' },
@@ -26,7 +26,6 @@ function extractSectionsFromText(text: string): { sectionName: string; content: 
 
   const sections: { sectionName: string; content: string; startIndex: number }[] = [];
   
-  // Find all section headers and their positions
   for (const { pattern, name } of sectionPatterns) {
     let match;
     const regex = new RegExp(pattern.source, pattern.flags);
@@ -39,19 +38,15 @@ function extractSectionsFromText(text: string): { sectionName: string; content: 
     }
   }
 
-  // Sort sections by their position in the text
   sections.sort((a, b) => a.startIndex - b.startIndex);
 
-  // Extract content between sections
   for (let i = 0; i < sections.length; i++) {
     const startIdx = sections[i].startIndex;
     const endIdx = i < sections.length - 1 ? sections[i + 1].startIndex - 50 : text.length;
     sections[i].content = text.slice(startIdx, endIdx).trim();
   }
 
-  // If no sections found, try to detect by common patterns
   if (sections.length === 0) {
-    // Try to extract basic info from the beginning (likely contact info)
     const lines = text.split('\n').filter(line => line.trim());
     if (lines.length > 0) {
       const contactLines = lines.slice(0, Math.min(5, lines.length));
@@ -63,7 +58,6 @@ function extractSectionsFromText(text: string): { sectionName: string; content: 
     }
   }
 
-  // Extract skills using heuristic patterns
   const skillPatterns = /(?:skills?|technologies?|tools?|proficient in|expertise in|familiar with)[:\s]*([^\n]+)/gi;
   let skillMatch;
   const extractedSkills: string[] = [];
@@ -86,10 +80,8 @@ function extractSectionsFromText(text: string): { sectionName: string; content: 
 function extractSkillsFromResume(text: string, sections: { sectionName: string; content: string }[]): string[] {
   const skills: Set<string> = new Set();
   
-  // Get skills from Skills section
   const skillsSection = sections.find(s => s.sectionName === 'Skills');
   if (skillsSection) {
-    // Split by common delimiters
     const skillItems = skillsSection.content.split(/[,;•|\n]/);
     skillItems.forEach(skill => {
       const cleaned = skill.trim().replace(/[•\-\*]/g, '').trim();
@@ -99,7 +91,6 @@ function extractSkillsFromResume(text: string, sections: { sectionName: string; 
     });
   }
 
-  // Common tech skills to look for in the entire text
   const commonSkills = [
     'JavaScript', 'TypeScript', 'Python', 'Java', 'C++', 'C#', 'Ruby', 'Go', 'Rust', 'PHP', 'Swift', 'Kotlin',
     'React', 'Angular', 'Vue', 'Node.js', 'Express', 'Django', 'Flask', 'Spring', 'Laravel',
@@ -132,8 +123,10 @@ serve(async (req) => {
   try {
     const { resumeText } = await req.json();
 
-    if (!resumeText) {
-      return new Response(JSON.stringify({ error: 'Resume text is required' }), {
+    if (!resumeText || resumeText.trim().length < 50) {
+      return new Response(JSON.stringify({ 
+        error: 'Resume text is required. Please paste your resume text to analyze.' 
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -141,14 +134,12 @@ serve(async (req) => {
 
     console.log('Analyzing resume with section extraction...');
 
-    // Extract sections using heuristic approach
     const extractedSections = extractSectionsFromText(resumeText);
     const extractedSkills = extractSkillsFromResume(resumeText, extractedSections);
     
     console.log('Extracted sections:', extractedSections.map(s => s.sectionName));
     console.log('Extracted skills:', extractedSkills);
 
-    // Create a formatted version of extracted sections for the LLM
     const formattedSections = extractedSections.length > 0 
       ? extractedSections.map(s => `## ${s.sectionName}\n${s.content}`).join('\n\n')
       : resumeText;
@@ -229,16 +220,13 @@ Return your analysis as a JSON object with this structure:
 
     const analysisText = data.choices[0].message.content;
     
-    // Parse the JSON from the response
     let analysis;
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = analysisText.match(/```json\n?([\s\S]*?)\n?```/) || 
                         analysisText.match(/```\n?([\s\S]*?)\n?```/);
       const jsonStr = jsonMatch ? jsonMatch[1] : analysisText;
       analysis = JSON.parse(jsonStr.trim());
       
-      // Ensure extractedSkills is included
       if (!analysis.extractedSkills) {
         analysis.extractedSkills = extractedSkills;
       }

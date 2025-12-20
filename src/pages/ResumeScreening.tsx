@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import DashboardNavbar from '@/components/DashboardNavbar';
 import { useUser } from '@/contexts/UserContext';
-import { extractTextFromPDF } from '@/lib/pdfParser';
 
 interface SectionAnalysis {
   name: string;
@@ -102,23 +101,12 @@ const ResumeScreening = () => {
     } else if (file.type === 'application/pdf') {
       setUploadedFileName(file.name);
       setIsParsing(true);
-      try {
-        const text = await extractTextFromPDF(file);
-        setResumeText(text);
-        toast({
-          title: 'PDF parsed successfully',
-          description: 'Your resume text has been extracted. Click "Analyze Resume" to continue.',
-        });
-      } catch (error) {
-        console.error('PDF parsing error:', error);
-        toast({
-          title: 'PDF parsing failed',
-          description: 'Could not extract text from PDF. Please paste your resume text manually.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsParsing(false);
-      }
+      toast({
+        title: 'PDF uploaded',
+        description: 'For best results, please also paste your resume text in the text area below.',
+      });
+      setResumeText(`[PDF uploaded: ${file.name}]\n\nTo analyze your resume, please copy and paste the text content from your PDF below.`);
+      setIsParsing(false);
     } else {
       toast({
         title: 'File format not supported',
@@ -155,10 +143,10 @@ const ResumeScreening = () => {
   }, [handleFileUpload]);
 
   const analyzeResume = async () => {
-    if (!resumeText.trim()) {
+    if (!resumeText.trim() || resumeText.includes('[PDF uploaded:')) {
       toast({
         title: 'Resume text required',
-        description: 'Please paste your resume content to analyze.',
+        description: 'Please paste your resume content in the text area to analyze.',
         variant: 'destructive',
       });
       return;
@@ -174,7 +162,7 @@ const ResumeScreening = () => {
 
       if (data.analysis) {
         setAnalysis(data.analysis);
-        setShowSkillGap(true); // Show skill gap section after analysis
+        setShowSkillGap(true);
         toast({
           title: 'Analysis complete!',
           description: 'Your resume has been analyzed. You can now run a skill gap analysis.',
