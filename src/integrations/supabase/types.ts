@@ -14,7 +14,179 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_history: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json
+          title: string
+          updated_at: string
+          user_profile_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          title: string
+          updated_at?: string
+          user_profile_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          title?: string
+          updated_at?: string
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_history_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          applied_at: string
+          company: string
+          cover_letter: string | null
+          description: string | null
+          id: string
+          job_title: string
+          status: string | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          applied_at?: string
+          company: string
+          cover_letter?: string | null
+          description?: string | null
+          id?: string
+          job_title: string
+          status?: string | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          applied_at?: string
+          company?: string
+          cover_letter?: string | null
+          description?: string | null
+          id?: string
+          job_title?: string
+          status?: string | null
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resources: {
+        Row: {
+          description: string | null
+          enrolled_at: string
+          id: string
+          title: string
+          topic: string
+          url: string | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          description?: string | null
+          enrolled_at?: string
+          id?: string
+          title: string
+          topic: string
+          url?: string | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          description?: string | null
+          enrolled_at?: string
+          id?: string
+          title?: string
+          topic?: string
+          url?: string | null
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resumes: {
+        Row: {
+          content: Json | null
+          created_at: string
+          file_url: string | null
+          id: string
+          title: string
+          type: string
+          updated_at: string
+          user_profile_id: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          title: string
+          type: string
+          updated_at?: string
+          user_profile_id?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resumes_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

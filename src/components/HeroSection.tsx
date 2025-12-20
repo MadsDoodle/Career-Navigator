@@ -1,13 +1,28 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Route, ArrowRight, Sparkles, Target, TrendingUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import WaveBackground from './WaveBackground';
+import GetStartedModal from './GetStartedModal';
+import { useUser } from '@/contexts/UserContext';
 
 const HeroSection = () => {
+  const [showModal, setShowModal] = useState(false);
+  const { userProfile } = useUser();
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    if (userProfile) {
+      navigate('/dashboard');
+    } else {
+      setShowModal(true);
+    }
+  };
+
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
       <WaveBackground />
-      
+      <GetStartedModal isOpen={showModal} onClose={() => setShowModal(false)} />
       <div className="container-custom relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center pt-24 pb-16">
           {/* Left Content */}
@@ -55,13 +70,13 @@ const HeroSection = () => {
               </motion.div>
               
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link
-                  to="/resume-builder"
+                <button
+                  onClick={handleGetStarted}
                   className="btn-secondary inline-flex items-center justify-center gap-2 text-lg"
                 >
-                  <Route className="w-5 h-5" />
-                  Build Resume
-                </Link>
+                  <Sparkles className="w-5 h-5" />
+                  Get Started
+                </button>
               </motion.div>
             </div>
 
