@@ -1,18 +1,4 @@
-/// <reference path="../src/vite-env.d.ts" />
-
-import type { Preview } from '@storybook/react-vite';
-import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { UserProvider } from '../src/contexts/UserContext';
-import { Toaster } from '../src/components/ui/toaster';
-import React from 'react';
-
-import '../src/index.css';
-import '../src/components/ui/tokens.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false } },
-});
+import type { Preview } from '@storybook/react-vite'
 
 const preview: Preview = {
   parameters: {
@@ -22,22 +8,14 @@ const preview: Preview = {
        date: /Date$/i,
       },
     },
+
     a11y: {
+      // 'todo' - show a11y violations in the test UI only
+      // 'error' - fail CI on a11y violations
+      // 'off' - skip a11y checks entirely
       test: 'todo'
     }
   },
-  decorators: [
-    (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <UserProvider>
-            <Story />
-            <Toaster />
-          </UserProvider>
-        </MemoryRouter>
-      </QueryClientProvider>
-    ),
-  ],
 };
 
-export default preview;
+export default preview;

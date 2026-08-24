@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { Check, Lock } from 'lucide-react';
-import styles from './LearnerProgressBadge.module.css';
+import './tokens.css';
 
 export type LearnerProgressState = 'default' | 'in-progress' | 'completed' | 'disabled';
 
@@ -20,22 +20,27 @@ export const LearnerProgressBadge: React.FC<LearnerProgressBadgeProps> = ({
   ...props
 }) => {
   const safeProgress = Math.min(100, Math.max(0, Math.round(progress)));
+  const stateClasses = {
+    default: 'border-[var(--lms-state-default-border)] bg-[var(--lms-state-default-bg)] text-[var(--lms-state-default-text)]',
+    'in-progress': 'border-[var(--lms-state-progress-border)] bg-[var(--lms-state-progress-bg)] text-[var(--lms-state-progress-text)]',
+    completed: 'border-[var(--lms-state-completed-border)] bg-[var(--lms-state-completed-bg)] text-[var(--lms-state-completed-text)]',
+    disabled: 'cursor-not-allowed border-[var(--lms-state-disabled-border)] bg-[var(--lms-state-disabled-bg)] text-[var(--lms-state-disabled-text)]',
+  }[state];
 
   return (
     <div
       role="status"
       aria-disabled={state === 'disabled'}
-      className={`${styles.badge} ${styles[state]} ${className}`.trim()}
+      className={`inline-flex items-center gap-[var(--lms-badge-gap)] rounded-full border-[1.5px] border-solid px-[var(--lms-badge-padding-x)] py-[var(--lms-badge-padding-y)] font-sans text-xs font-extrabold uppercase tracking-[var(--lms-letter-spacing-badge)] select-none ${stateClasses} ${className}`.trim()}
       {...props}
     >
-      {/* 1. Default (Not Started) */}
       {state === 'default' && (
         <>
-          <span className={styles.circleIcon} />
+          <span className="h-[15px] w-[15px] shrink-0 rounded-full border-[2.2px] border-[var(--lms-state-default-icon)]" />
           {label ? (
-            <span className={styles.singleText}>{label}</span>
+            <span>{label}</span>
           ) : (
-            <div className={styles.stackedText}>
+            <div className="flex flex-col text-[11px] leading-[1.15]">
               <span>NOT</span>
               <span>STARTED</span>
             </div>
@@ -43,14 +48,13 @@ export const LearnerProgressBadge: React.FC<LearnerProgressBadgeProps> = ({
         </>
       )}
 
-      {/* 2. In-Progress */}
       {state === 'in-progress' && (
         <>
-          <span className={styles.progressRing}>
+          <span className="inline-flex shrink-0 -rotate-90">
             <svg viewBox="0 0 16 16" width="16" height="16">
-              <circle className={styles.ringTrack} cx="8" cy="8" r="6" />
+              <circle className="fill-none stroke-[var(--lms-state-progress-ring-track)] [stroke-width:2.8]" cx="8" cy="8" r="6" />
               <circle
-                className={styles.ringFill}
+                className="fill-none stroke-[var(--lms-state-progress-ring-fill)] [stroke-width:2.8] [stroke-linecap:round] transition-[stroke-dashoffset] duration-300 ease-in-out"
                 cx="8"
                 cy="8"
                 r="6"
@@ -62,9 +66,9 @@ export const LearnerProgressBadge: React.FC<LearnerProgressBadgeProps> = ({
             </svg>
           </span>
           {label ? (
-            <span className={styles.singleText}>{label}</span>
+            <span>{label}</span>
           ) : (
-            <div className={styles.stackedText}>
+            <div className="flex flex-col text-[11px] leading-[1.15]">
               <span>{safeProgress}%</span>
               <span>COMPLETE</span>
             </div>
@@ -72,19 +76,17 @@ export const LearnerProgressBadge: React.FC<LearnerProgressBadgeProps> = ({
         </>
       )}
 
-      {/* 3. Completed */}
       {state === 'completed' && (
         <>
-          <Check size={16} strokeWidth={3} className={styles.checkIcon} />
-          <span className={styles.singleText}>{label ?? 'COMPLETED'}</span>
+          <Check size={16} strokeWidth={3} className="shrink-0 text-[var(--lms-state-completed-icon)]" />
+          <span>{label ?? 'COMPLETED'}</span>
         </>
       )}
 
-      {/* 4. Disabled (Locked) */}
       {state === 'disabled' && (
         <>
-          <Lock size={14} strokeWidth={2.4} className={styles.lockIcon} />
-          <span className={styles.singleText}>{label ?? 'LOCKED'}</span>
+          <Lock size={14} strokeWidth={2.4} className="shrink-0 text-[var(--lms-state-disabled-icon)]" />
+          <span>{label ?? 'LOCKED'}</span>
         </>
       )}
     </div>
