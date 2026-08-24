@@ -1,0 +1,53 @@
+ 
+
+:root {
+  
+  --lms-brand-primary: #4F46E5;
+  --lms-brand-primary-light: #EEF2FF;
+  --lms-surface-card: #FFFFFF;
+  --lms-surface-border: #E5E7EB;
+  --lms-surface-caption: #6B7280;
+
+ 
+  /* Default State (Not Started) — Soft Slate */
+  --lms-state-default-bg: #EFF3F8;
+  --lms-state-default-border: #D8E2EC;
+  --lms-state-default-text: #2D3748;
+  --lms-state-default-icon: #334155;
+
+  /* In-Progress State — Warm Amber / Golden Glow */
+  --lms-state-progress-bg: #FEF3C7;
+  --lms-state-progress-border: #FCD34D;
+  --lms-state-progress-text: #92400E;
+  --lms-state-progress-ring-track: #FDE68A;
+  --lms-state-progress-ring-fill: #D97706;
+
+  /* Completed State — Crisp Emerald Mint */
+  --lms-state-completed-bg: #DCFCE7;
+  --lms-state-completed-border: #86EFAC;
+  --lms-state-completed-text: #166534;
+  --lms-state-completed-icon: #15803D;
+
+  /* Disabled State (Locked) — Muted Neutral */
+  --lms-state-disabled-bg: #F1F5F9;
+  --lms-state-disabled-border: #E2E8F0;
+  --lms-state-disabled-text: #94A3B8;
+  --lms-state-disabled-icon: #94A3B8;
+
+  
+  --lms-font-family-badge: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --lms-font-size-badge-stacked: 0.6875rem; /* 11px */
+  --lms-font-size-badge-single: 0.75rem;   /* 12px */
+  --lms-font-weight-badge: 800;
+  --lms-letter-spacing-badge: 0.04em;
+
+ 
+  --lms-radius-pill: 9999px;
+  --lms-radius-card: 14px;
+  --lms-badge-gap: 9px;
+  --lms-badge-padding-y: 8px;
+  --lms-badge-padding-x: 16px;
+
+ 
+  --lms-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
